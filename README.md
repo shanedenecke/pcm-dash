@@ -1,2 +1,2 @@
 # pcm-dash
-Dashboard written in the dash framework for philly clean machine
+This repo contains a dashboard written in the dash framework (python) for the Philly Clean Machine
