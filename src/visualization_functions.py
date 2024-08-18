@@ -16,7 +16,6 @@ import base64
 
 
 
-
 def render_tracker_plot(app: Dash, smooth: bool) -> html.Div: #raw_tracker_table: pd.DataFrame, 
 
 
