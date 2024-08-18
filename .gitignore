@@ -1,0 +1,5 @@
+pcm-env
+testing/**
+.vscode
+__pycache__
+*scratch*
