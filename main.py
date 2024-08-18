@@ -11,7 +11,7 @@ def main() -> None:
     app = Dash(external_stylesheets=[BOOTSTRAP])
     app.title = "Philly Clean Machine"
     app.layout = create_layout(app)
-    app.run()
+    app.run(host='0.0.0.0', port=8050)
 
 if __name__ == "__main__":
     main()
