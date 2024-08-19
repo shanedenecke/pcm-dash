@@ -206,7 +206,7 @@ def render_plotly_graph(app: Dash, smooth: bool) -> html.Div:
     # Show the plot
     #fig.show()
     #return fig
-    fig.write_image("testing/plots/fig1.png")
+    #fig.write_image("testing/plots/fig1.png")
 
 
     return html.Div(dcc.Graph(figure=fig), id=ids.TRACKER_PLOT)
