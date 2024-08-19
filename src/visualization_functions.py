@@ -13,10 +13,36 @@ from scipy.ndimage.filters import gaussian_filter1d
 from src import ids
 import plotly.graph_objs as go
 import base64
+from bs4 import BeautifulSoup
+import requests
 
 
 
-def render_tracker_plot(app: Dash, smooth: bool) -> html.Div: #raw_tracker_table: pd.DataFrame, 
+
+def scrapeDataFromSpreadsheet(google_sheet_link):
+    
+    
+    ### Request sheet
+    html = requests.get(google_sheet_link).text
+    
+    ### Parse into rows
+    soup = BeautifulSoup(html, 'lxml') ### credit to https://stackoverflow.com/questions/74058424/how-do-i-get-the-data-from-a-table-of-google-spreadsheet-using-requests-in-pytho
+    salas_cine = soup.find_all('table')[0]
+    rows = [[td.text for td in row.find_all("td")] for row in salas_cine.find_all('tr')]
+    
+    ## Parse DF
+    base_df = pd.DataFrame(rows)
+    base_df.columns = base_df.iloc[1]
+    base_df = base_df.iloc[2:, :]
+    base_df = base_df[base_df['Date']!='']
+    
+    return base_df
+
+
+
+
+
+def render_tracker_plot(app: Dash, smooth: bool=False) -> html.Div: #raw_tracker_table: pd.DataFrame, 
 
 
     ### Testing
@@ -88,15 +114,13 @@ def render_tracker_plot(app: Dash, smooth: bool) -> html.Div: #raw_tracker_table
 def render_plotly_graph(app: Dash, smooth: bool) -> html.Div:
 
     ### Testing
-    raw_tracker_table = pd.read_csv("inputs/Trash_Tracker.csv")
+    tracker_data = scrapeDataFromSpreadsheet(google_sheet_link="https://docs.google.com/spreadsheets/d/1nd2RGgevgelHcFpRw3J4Iw_yfV5exiQ1moif6R_OZS8/edit?usp=sharing")
     # smooth=False
 
-
-
+    
     ####### Pandas Parsing
-
-    tracker_data = raw_tracker_table.copy(deep=True)
     tracker_data['Date'] = pd.to_datetime(tracker_data['Date'])
+    tracker_data['Bags'] = tracker_data['Bags'].astype(int)
     tracker_data['Cumulative Bags'] = np.cumsum(tracker_data['Bags'].to_list())
 
 
@@ -120,8 +144,13 @@ def render_plotly_graph(app: Dash, smooth: bool) -> html.Div:
     ))
 
 
-
+    total_days = (max(tracker_data['Date']) - min(tracker_data['Date'])).days
     tickDict = dict(size=16, weight='bold')
+    date_buttons = [
+    {'count': 28, 'label': "4WTD", 'step': "day", 'stepmode': "todate"},
+    {'count': 1, 'label': "YTD", 'step': "year", 'stepmode': "todate"},
+    {'count': total_days + 25, 'label': "All", 'step': "day", 'stepmode': "todate"}]
+
     # Customize General Aesthetics
     fig.update_layout(
         template='plotly_white',
@@ -142,7 +171,8 @@ def render_plotly_graph(app: Dash, smooth: bool) -> html.Div:
                 text='Month', 
                 font=dict(weight='bold',size=30)
             ),
-            tickfont=tickDict
+            tickfont=tickDict,
+            rangeselector=dict(buttons=date_buttons)
         ),
         yaxis=dict(
             title=dict(
@@ -172,9 +202,11 @@ def render_plotly_graph(app: Dash, smooth: bool) -> html.Div:
         )
     )
 
+
     # Show the plot
     #fig.show()
     #return fig
+    fig.write_image("testing/plots/fig1.png")
 
 
     return html.Div(dcc.Graph(figure=fig), id=ids.TRACKER_PLOT)
