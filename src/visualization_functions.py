@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 import requests
 
 
-def scrapeDataFromSpreadsheet(google_sheet_link:str = "https://docs.google.com/spreadsheets/d/1nd2RGgevgelHcFpRw3J4Iw_yfV5exiQ1moif6R_OZS8/edit?gid=0#gid=0"):
+def scrapeDataFromSpreadsheet(google_sheet_link:str = ids.SPREADSHEET_URL):
     
     
     ### Request sheet
