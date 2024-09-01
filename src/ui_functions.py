@@ -1,6 +1,6 @@
 from dash import html, Dash, dcc
 import dash_bootstrap_components as dbc
-from src.visualization_functions import render_plotly_graph, hover1, scrapeDataFromSpreadsheet
+from src.visualization_functions import render_plotly_graph, hover1, scrapeDataFromSpreadsheet, render_plotly_graph2
 from src import ids
 
 
@@ -93,9 +93,11 @@ def graphPage_ui(app: Dash):
                     ),
                     dbc.Col(
                         html.Div(
-                            render_plotly_graph(app=app, 
-                            trackerData=scrapeDataFromSpreadsheet(ids.SPREADSHEET_URL), 
-                            smooth=False)
+                            # render_plotly_graph(app=app, 
+                            # trackerData=scrapeDataFromSpreadsheet(ids.SPREADSHEET_URL), 
+                            # smooth=False)
+                             render_plotly_graph2(app=app, 
+                            trackerData=scrapeDataFromSpreadsheet(ids.SPREADSHEET_URL))
                             ),
                             width=7
                     ),
@@ -120,7 +122,7 @@ def gaussianSmooth(app: Dash):
     return html.Div(
         children=[
             html.H6("Gaussian Smoother"),
-            dcc.RadioItems(options=labDict, value=True),
+            dcc.RadioItems(options=labDict, value=True, id=ids.GAUSS),
         ]
     )
 
