@@ -1,9 +1,13 @@
-from dash import Dash, html, dcc
+from dash import Dash, html, dcc, callback
 import docx
-from src.visualization_functions import render_plotly_graph
+from dash.dependencies import Input, Output
+from src.visualization_functions import render_plotly_graph, hover1, scrapeDataFromSpreadsheet
 import plotly.graph_objs as go
 import base64
 import dash_bootstrap_components as dbc
+from src import ids
+
+from src.ui_functions import create_contact_page 
 
 
 
@@ -48,7 +52,10 @@ def create_layout(app: Dash) -> html.Div:
                 dbc.Row([
                     dbc.Col(
                         html.Div(
-                            render_plotly_graph(app, smooth=False)),
+                            render_plotly_graph(app=app, 
+                            trackerData=scrapeDataFromSpreadsheet(ids.SPREADSHEET_URL), 
+                            smooth=False)
+                            ),
                             width=9
                     ),
                     dbc.Col(
@@ -56,24 +63,12 @@ def create_layout(app: Dash) -> html.Div:
                         style={'textAlign': 'right'}
                     )
 
-            ])
+            ]),
+            #html.Div(id="hoverInfo")
+            html.Div(hover1(app))
         ]),
         dcc.Tab(label='Contact Information', children=[
-            dcc.Graph(
-                figure={
-                    'data': [
-                        {'x': [1, 2, 3], 'y': [2, 4, 3],
-                            'type': 'bar', 'name': 'SF'},
-                        {'x': [1, 2, 3], 'y': [5, 4, 3],
-                         'type': 'bar', 'name': 'Montréal'},
-                    ]
-                }
-            )
+            create_contact_page()
         ]),
     ])
 ])
-
-
-
-    
-    return 

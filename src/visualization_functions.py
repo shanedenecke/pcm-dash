@@ -4,7 +4,8 @@
 
 
 
-from dash import Dash, html, dcc
+from dash import Dash, html, dcc, callback
+from dash.dependencies import Input, Output
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
@@ -17,9 +18,7 @@ from bs4 import BeautifulSoup
 import requests
 
 
-
-
-def scrapeDataFromSpreadsheet(google_sheet_link):
+def scrapeDataFromSpreadsheet(google_sheet_link:str = "https://docs.google.com/spreadsheets/d/1nd2RGgevgelHcFpRw3J4Iw_yfV5exiQ1moif6R_OZS8/edit?gid=0#gid=0"):
     
     
     ### Request sheet
@@ -35,28 +34,17 @@ def scrapeDataFromSpreadsheet(google_sheet_link):
     base_df.columns = base_df.iloc[1]
     base_df = base_df.iloc[2:, :]
     base_df = base_df[base_df['Date']!='']
+
+    base_df['Date'] = pd.to_datetime(base_df['Date'], format="%d%b%y")
+    base_df['Cumulative Bags'] = np.cumsum(base_df['Bags'].astype(int).to_list())
     
     return base_df
 
 
 
+def render_plotly_graph(app: Dash, trackerData, smooth: bool) -> html.Div:
 
-
-def render_tracker_plot(app: Dash, smooth: bool=False) -> html.Div: #raw_tracker_table: pd.DataFrame, 
-
-
-    ### Testing
-    raw_tracker_table = pd.read_csv("inputs/Trash_Tracker.csv")
-    # smooth=False
-
-
-
-    ####### Pandas Parsing
-
-    tracker_data = raw_tracker_table.copy(deep=True)
-    tracker_data['Date'] = pd.to_datetime(tracker_data['Date'])
-    tracker_data['Cumulative Bags'] = np.cumsum(tracker_data['Bags'].to_list())
-
+    tracker_data = trackerData.copy(deep=True)
 
     ### Gaussian smoother
     if smooth==True:
@@ -64,71 +52,6 @@ def render_tracker_plot(app: Dash, smooth: bool=False) -> html.Div: #raw_tracker
     else:
         tracker_data['Date'] = tracker_data['Date']
 
-
-    ### Extract Month labels from Smoother
-    monthLabels = list(
-        dict.fromkeys(
-            [x.strftime("%b") for x in tracker_data["Date"].unique()]
-        )
-    )
-
-    ### Make plot
-    #allStyles = plt.style.available ### see all possible styles
-
-    # Set Plot parameters
-    plt.style.use("classic")
-    plt.clf()
-    fig, ax = plt.subplots()
-
-    # Call Plot
-    sns.lineplot(
-        data=tracker_data,
-        x="Date", 
-        y="Cumulative Bags", 
-        ax=ax,
-        linewidth=5,               # Line width
-        color="dodgerblue",              # Line color
-        marker="o",                # Marker style
-        markersize=4,             # Marker size
-        markeredgecolor="black",   # Marker edge color
-        markeredgewidth=1,         # Marker edge width
-        linestyle="-"             # Line style
-    )
-
-    # Modify aesthetics
-    ax.set_xticklabels(labels=monthLabels)
-    ax.set_xlabel(xlabel='Month', fontdict={'weight':'bold', 'size':16})
-    ax.set_ylabel(ylabel='Cumulative Trash Bags', fontdict={'weight':'bold', 'size':16})
-    ax.set_title(label='Philly Clean Machine Trash Tracker', fontdict={'weight':'bold', 'size':20, 'color':'dodgerblue'}, pad=20)
-    plt.subplots_adjust(top=0.9)
-
-    #plt.show()
-    #plt.savefig(f"./testing/plots/TrashTracker_Plot.png")
-    #plt.clf()
-
-    return html.Div(dcc.Graph(figure=fig), id=ids.TRACKER_PLOT)
-
-
-
-
-def render_plotly_graph(app: Dash, smooth: bool) -> html.Div:
-
-    ### Testing
-    tracker_data = scrapeDataFromSpreadsheet(google_sheet_link="https://docs.google.com/spreadsheets/d/1nd2RGgevgelHcFpRw3J4Iw_yfV5exiQ1moif6R_OZS8/edit?usp=sharing")
-    # smooth=False
-
-    
-    ####### Pandas Parsing
-    tracker_data['Date'] = pd.to_datetime(tracker_data['Date'])
-    tracker_data['Bags'] = tracker_data['Bags'].astype(int)
-    tracker_data['Cumulative Bags'] = np.cumsum(tracker_data['Bags'].to_list())
-
-
-    ### Gaussian smoother
-    if smooth==True:
-        tracker_data['Date'] = gaussian_filter1d(tracker_data['Cumulative Bags'], sigma=5)
-    else:
-        tracker_data['Date'] = tracker_data['Date']
 
 
     # Create a line plot
@@ -180,9 +103,7 @@ def render_plotly_graph(app: Dash, smooth: bool) -> html.Div:
                 font=dict(weight='bold',size=30)
             ),
             tickfont=tickDict
-        ),
-        #plot_bgcolor='rgb(255,255,255)',
-        hovermode='x'
+        )
     )
 
 
@@ -205,10 +126,20 @@ def render_plotly_graph(app: Dash, smooth: bool) -> html.Div:
 
     # Show the plot
     #fig.show()
-    #return fig
     #fig.write_image("testing/plots/fig1.png")
 
 
     return html.Div(dcc.Graph(figure=fig), id=ids.TRACKER_PLOT)
 
+
+
+#### Still not displaying any interactivity. Can get the Nothing hovered message to show
+def hover1(app: Dash) -> html.Div:
+
+    @app.callback(Output(ids.HOVER_INFO, 'children'), [Input(ids.TRACKER_PLOT, 'hoverData')])
+    def display_hover_data(hoverData):
+        return html.Div(f'Hover Data: {hoverData}', id=ids.HOVER_INFO)
+        
+    
+    return html.Div(id=ids.HOVER_INFO)
 
