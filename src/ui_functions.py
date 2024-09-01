@@ -1,4 +1,4 @@
-from dash import html, Dash
+from dash import html, Dash, dcc
 import dash_bootstrap_components as dbc
 from src.visualization_functions import render_plotly_graph, hover1, scrapeDataFromSpreadsheet
 from src import ids
@@ -76,6 +76,7 @@ def homePage_ui():
 
 
 def graphPage_ui(app: Dash):
+
     return html.Div(
         children=[
             html.Header(
@@ -87,12 +88,16 @@ def graphPage_ui(app: Dash):
                 ),
                 dbc.Row([
                     dbc.Col(
+                        gaussianSmooth(app=app),
+                        width=1
+                    ),
+                    dbc.Col(
                         html.Div(
                             render_plotly_graph(app=app, 
                             trackerData=scrapeDataFromSpreadsheet(ids.SPREADSHEET_URL), 
                             smooth=False)
                             ),
-                            width=9
+                            width=7
                     ),
                     dbc.Col(
                         html.Img(src='/assets/pcmArea.png', style={'width': '100%', 'height': 'auto'}),
@@ -104,3 +109,19 @@ def graphPage_ui(app: Dash):
             html.Div(hover1(app))
         ]
     )
+
+
+
+def gaussianSmooth(app: Dash):
+
+    allOptions = [True, False]
+    labDict = [{"label":str(x), "value":x} for x in allOptions]
+
+    return html.Div(
+        children=[
+            html.H6("Gaussian Smoother"),
+            dcc.RadioItems(options=labDict, value=True),
+        ]
+    )
+
+    

@@ -5,7 +5,7 @@ import plotly.graph_objs as go
 import base64
 import dash_bootstrap_components as dbc
 
-from src.ui_functions import contactPage_ui, homePage_ui, graphPage_ui
+from src.ui_functions import contactPage_ui, homePage_ui, graphPage_ui, gaussianSmooth
 
 
 def create_layout(app: Dash) -> html.Div:
