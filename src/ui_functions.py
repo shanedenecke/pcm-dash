@@ -122,7 +122,7 @@ def gaussianSmooth(app: Dash):
     return html.Div(
         children=[
             html.H6("Gaussian Smoother"),
-            dcc.RadioItems(options=labDict, value=True, id=ids.GAUSS),
+            dcc.RadioItems(options=labDict, value=False, id=ids.GAUSS),
         ]
     )
 
